@@ -313,7 +313,7 @@ export class wormController extends Component {
         }
     }
 
-    //kiem soat vi tri ma worm da di qua
+    //kiem soat worm di chuyen
     WormMoveControl_Go(director: Vec3) {
         const _length = this.pointWormMove.length;
         const nodePos = this.node.position.clone();
@@ -409,7 +409,7 @@ export class wormController extends Component {
     }
 
     //----------------------------------------------------------------------------------------------------------
-    //dieu khien phan than di chuyen theo worm go va back
+    //dieu khien body di chuyen
     BodyMoveControl_Go_Back() {
         for (let i = 0; i < this.bodyLength; i++) {
             if (this.pointWormMove[i]) {

@@ -21,17 +21,10 @@ export class BoxController extends Component {
         this.OnInit();
 
         this.canFalling = this.CheckBoxCanFall();
-        //if (this.canFalling) {
-        //    this.canCheck = false;
-        //}
-        //else {
-        //    this.canCheck = true;
-        //}
     }
 
     update(deltaTime: number) {
         //console.log('update box');
-
         //console.log(this.CheckBoxCanFall());
         //console.log('wall ' + this.CheckBoxOnWall());
         //console.log('worm ' + this.CheckBoxOnWorm());

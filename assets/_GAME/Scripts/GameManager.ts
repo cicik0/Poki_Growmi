@@ -16,8 +16,6 @@ export class GameManager extends Component {
     //tao instance static
     public static _instance: GameManager;
 
-    public static gameState: GameState;
-
     currentMap: number = 0;
 
     @property({
@@ -52,6 +50,7 @@ export class GameManager extends Component {
 
 
     OnInit() {
+        //lang nghe su kien chuyen map va win
         this.node.on('finishmap', this.HandelFinishMap, this);
         this.node.on('winGame', this.HandelWinGame, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
@@ -62,6 +61,7 @@ export class GameManager extends Component {
 
     }
 
+    //dieu kien worm di chuyen
     onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case 38: //up
@@ -98,34 +98,34 @@ export class GameManager extends Component {
         }
     }
 
-    updateGameState(newState: GameState) {
-        const gameState = newState;
+    //updateGameState(newState: GameState) {
+    //    const gameState = newState;
 
-        switch (newState) {
-            case GameState.MAIN_MENU:
-                this.HandleMainMenu();
-                break;
-            case GameState.GAME_PLAY:
-                this.HandleGamePlay();
-                break;
-            case GameState.GAME_WIN:
-                this.HandleGameWin();
-                break;
-            case GameState.GAME_PAUSE:
-                this.HandleGamePlay();
-                break;
-        }
-    }
-    HandleGameWin() {
+    //    switch (newState) {
+    //        case GameState.MAIN_MENU:
+    //            this.HandleMainMenu();
+    //            break;
+    //        case GameState.GAME_PLAY:
+    //            this.HandleGamePlay();
+    //            break;
+    //        case GameState.GAME_WIN:
+    //            this.HandleGameWin();
+    //            break;
+    //        case GameState.GAME_PAUSE:
+    //            this.HandleGamePlay();
+    //            break;
+    //    }
+    //}
+    //HandleGameWin() {
         
-    }
-    HandleGamePlay() {
+    //}
+    //HandleGamePlay() {
         
-    }
+    //}
 
-    HandleMainMenu() {
+    //HandleMainMenu() {
         
-    }
+    //}
 
     //load scene moi theo ten
     LoadScene(sceneName: string) {
@@ -171,6 +171,7 @@ export class GameManager extends Component {
         }
     }
 
+    //huy su kien
     onDestroy() {
         this.node.off('finishmap', this.HandelFinishMap, this);
         this.node.off('winGame', this.HandelWinGame, this);

@@ -29,6 +29,11 @@ export class GameManager extends Component {
     })
     public maps: string[] = [];
 
+    @property({
+        type: Node
+    })
+    public canvasControll: Node | null;
+
     onLoad() {
         if (GameManager._instance == null) {
             GameManager._instance = this;
@@ -52,7 +57,7 @@ export class GameManager extends Component {
     OnInit() {
         //lang nghe su kien chuyen map va win
         this.node.on('finishmap', this.HandelFinishMap, this);
-        this.node.on('winGame', this.HandelWinGame, this);
+        //this.node.on('winGame', this.HandelWinGame, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         //input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     }
@@ -90,42 +95,14 @@ export class GameManager extends Component {
                 break;
             case KeyCode.KEY_F:
                 console.log(this.worm.pointWormMove); //test funcion, REMEMBER DELETE
-                //console.log(this.worm.pointWormMove.length);
+                console.log(this.worm.pointWormMove.length);
                 //this.worm.CheckDirectorMoved();
                 //console.log('return ' + this.worm.CheckDirectorMoved());
-                console.log('current map ' + this.currentMap);
+                //console.log('current map ' + this.currentMap);
+                console.log('current body length ' + this.worm.currentBodyPoint);   
                 break;
         }
     }
-
-    //updateGameState(newState: GameState) {
-    //    const gameState = newState;
-
-    //    switch (newState) {
-    //        case GameState.MAIN_MENU:
-    //            this.HandleMainMenu();
-    //            break;
-    //        case GameState.GAME_PLAY:
-    //            this.HandleGamePlay();
-    //            break;
-    //        case GameState.GAME_WIN:
-    //            this.HandleGameWin();
-    //            break;
-    //        case GameState.GAME_PAUSE:
-    //            this.HandleGamePlay();
-    //            break;
-    //    }
-    //}
-    //HandleGameWin() {
-        
-    //}
-    //HandleGamePlay() {
-        
-    //}
-
-    //HandleMainMenu() {
-        
-    //}
 
     //load scene moi theo ten
     LoadScene(sceneName: string) {
@@ -148,6 +125,9 @@ export class GameManager extends Component {
     //khi win game
     HandelWinGame() {
         this.LoadScene(Constant.MAP_WIN);
+        this.canvasControll.active = false;
+
+        //console.log('win');
     }
 
     //lay worm trong moi map
@@ -163,7 +143,7 @@ export class GameManager extends Component {
             if (wormControl) {
                 this.worm = wormControl;
                 wormNode.on('finishmap', this.HandelFinishMap, this);
-                wormNode.on('winGame', this.HandelWinGame, this);
+                //wormNode.on('winGame', this.HandelWinGame, this);
             }
             else {
                 console.error('can find wormcontroller');
@@ -171,10 +151,26 @@ export class GameManager extends Component {
         }
     }
 
+    HandelButton_UpClick() {
+        this.worm.WormMove(this.worm._up);
+    }
+
+    HandelButton_DownClick() {
+        this.worm.WormMove(this.worm._down);
+    }
+
+    HandelButton_LeftClick() {
+        this.worm.WormMove(this.worm._left);
+    }
+
+    HandelButton_RightClick() {
+        this.worm.WormMove(this.worm._right);
+    }
+
     //huy su kien
     onDestroy() {
         this.node.off('finishmap', this.HandelFinishMap, this);
-        this.node.off('winGame', this.HandelWinGame, this);
+        //this.node.off('winGame', this.HandelWinGame, this);
         director.off(Director.EVENT_AFTER_SCENE_LAUNCH, this.OnSceneLoad, this);
     }
 }

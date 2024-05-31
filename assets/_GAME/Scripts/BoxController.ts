@@ -39,7 +39,7 @@ export class BoxController extends Component {
     }
 
     OnInit() {
-        console.log('box onInit');
+        //console.log('box onInit');
 
         if (GameManager._instance) {
             const worm = GameManager._instance.worm;
@@ -79,7 +79,7 @@ export class BoxController extends Component {
 
             for (let child of mapPrefabs) {
                 if (child.position.equals(targetPos)) {
-                    if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK) {
+                    if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BOX) {
                         //console.log('collider');
                         return true;
                     }

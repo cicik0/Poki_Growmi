@@ -38,8 +38,8 @@ export class wormController extends Component {
     pointWormMoveSet: Set<string> = new Set<string>();
     currentBodyPoint: number;
     pointWormMove: Vec3[] = [];
-    canMoveBack: boolean;
-    isBoxMove: boolean;
+    //canMoveBack: boolean;
+    //isBoxMove: boolean;
     moveIndex: number;
 
     isFinishMap: boolean = false;
@@ -71,7 +71,7 @@ export class wormController extends Component {
     isTouchGround: boolean;   
 
     //box
-    box: Node;
+    boxes: Node[];
 
     //cap nhat set luu vi tri worm
     UpdateWormMoveSet() {
@@ -82,13 +82,14 @@ export class wormController extends Component {
     }
 
     //di chuyen sau khi nhan phim
-    WormMoveByStep(director: Vec3) {
+    async WormMoveByStep(director: Vec3) {
         const nodePos = this.node.position.clone();
-        this.node.setPosition(nodePos.add(director));
+        //this.node.setPosition(nodePos.add(director));
+        await this.CreateTweenWorm(this.node, nodePos.add(director));
         this.UpdateWormMoveSet();
-        if (this.CheckWinGame()) {
-            this.node.emit('winGame');
-        }
+        //if (this.CheckWinGame()) {
+        //    this.node.emit('winGame');
+        //}
     }
 
     //khoi tao than sau ban dau
@@ -117,11 +118,11 @@ export class wormController extends Component {
         }
 
         // Lấy node hộp từ map
-        this.box = map.getChildByName(Constant.MAP_BOX);
-        if (!this.box) {
+        this.boxes = map.children.filter(child => child.name === Constant.MAP_BOX);
+        if (this.boxes.length === 0) {
             console.error('Box not found in map');
         } else {
-            console.log('Box found:');
+            console.log(`Found ${this.boxes.length} boxes`);
         }
     }
 
@@ -135,7 +136,7 @@ export class wormController extends Component {
 
             for (let child of mapPrefabs) {
                 if (child.position.equals(targetPos)) {
-                    if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK) {
+                    if (child.name === Constant.MAP_MAP || child.name === Constant.MAP_BLOCK) {
                         //console.log('collider');
                         return true;
                     }
@@ -146,50 +147,46 @@ export class wormController extends Component {
     }
 
     //kiem tra wrom da day box hay chua
-    CheckWormTounchBox(director: Vec3): boolean {
-        if (this.box) {
-            const boxPos = this.box.position.clone();
+    CheckWormTounchBox(director: Vec3): Node | null {
+        for (let box of this.boxes) {
+            const boxPos = box.position.clone();
             const nodePos = this.node.position.clone();
             if (nodePos.add(director).equals(boxPos)) {
-                return true;
+                return box;
             }
-
-            return false;
-        }        
+        }
+        return null;
     }
 
     //kiem tra di chuyen co day duoc box hay khong?
-    CheckBoxCanMove(director: Vec3): boolean {
-        if (this.box) {
-            const boxPos = this.box.position.clone();
-            const targetPos = boxPos.add(director);
-            const mapPrefabs = this.map.children;
+    CheckBoxCanMove(box: Node, director: Vec3): boolean {
+        const boxPos = box.position.clone();
+        const targetPos = boxPos.add(director);
+        const prefabs = this.map.children;
 
-            for (let child of mapPrefabs) {
-                if (child.position.equals(targetPos)) {
-                    if (child.name == Constant.MAP_BLOCK || Constant.MAP_MAP) {
-                        return false;
-                    }
+        for (let child of prefabs) {
+            if (child.position.equals(targetPos)) {
+                if (child.name == Constant.MAP_MAP || Constant.MAP_FINISH) {
+                    return false;
                 }
             }
-            return true;
-        }      
-    }
+        }
+        return true;
+    }   
 
     //kiem tra co di chuyen tren mat ground hay khong
-    //hai kieu di chuyen: in ground, touch ground
+    //kieu di chuyen: in ground
     CheckMoveInGrond(direction: Vec3): boolean {
         let nodePos = this.node.position.clone();
-        //console.log(nodePos + ' before move');
         nodePos = nodePos.add(direction).clone();
-        const targetPos = nodePos.add(this._down);
-        //console.log(nodePos + ' after move');
-        const mapPrefabs = this.map.children;
-        for (let child of mapPrefabs) {
-            if (child.position.equals(targetPos)) {               
-                if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK || child.name == Constant.MAP_BOX || Constant.MAP_FINISH) {
-                    //console.log('check finish map');
 
+        const targetPos = nodePos.add(this._down);
+        const mapPrefabs = this.map.children;
+
+        for (let child of mapPrefabs) {
+            if (child.position.equals(targetPos)) {
+                if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK || child.name == Constant.MAP_BOX || Constant.MAP_FINISH || Constant.MAP_WIN) {
+                    //console.log('check finish map');
                     if (this.pointWormMove.length == 1) {
                         this.isTouchGround = false;
                     }
@@ -208,12 +205,16 @@ export class wormController extends Component {
 
                         this.node.emit('finishmap');
                     }
-
-                    return true;                   
-                }              
+                    return true;
+                }
             }
         }
         return false;
+    }
+
+    //kieu di chuyen: touch ground
+    CheckMoveTounchGround(director: Vec3) {
+
     }
 
     //kiem tra huong da di chuyen, check trang thai di chuyen
@@ -225,9 +226,7 @@ export class wormController extends Component {
         const _right = this.node.position.clone().add(this._right);
         const _up = this.node.position.clone().add(this._up);
         const _down = this.node.position.clone().add(this._down);
-        
-
-        
+              
         if (this.pointWormMove[_length - 2]) {
             //console.log('check moved point ' + this.pointWormMove[_length - 2]);
             //console.log('current node: ' + nodePos);
@@ -254,6 +253,14 @@ export class wormController extends Component {
         }   
     }
 
+    //kiem tra do dai than
+    Check_IfEnoughBodyLength(): boolean {
+        if (this.pointWormMove.length == this.bodyLength + 1) {
+            return true; 
+        }
+        return false; 
+    }
+
     //kiem tra khi win game
     CheckWinGame(): boolean {
 
@@ -261,7 +268,7 @@ export class wormController extends Component {
             const mapPrefabs = this.map.children;
 
             for (let child of mapPrefabs) {
-                if (child.position.equals(this.node.position)) {
+                if (child.name == Constant.MAP_WIN && child.position.equals(this.node.position)) {
                     return true;
                 }
             }
@@ -269,140 +276,180 @@ export class wormController extends Component {
         return false;
     }
 
+    //kiem tra co the go
+    CheckCan_Go(director: Vec3): boolean {
+        if (this.pointWormMove.length != this.bodyLength + 1) {
+            const nodePos = this.node.position.clone();
+            const targetPos = nodePos.add(director);
+            for (let i = this.pointWormMove.length - 1; i >= 0; i--) {
+                if (targetPos.equals(this.pointWormMove[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+        
+    }
+
+    //kiem tra co the back
+    CheckCan_Back(director: Vec3): boolean {
+        if (this.currentBodyPoint > 0) {
+            const nodePos = this.node.position.clone();
+            const targetPos = nodePos.add(director);
+            for (let i = this.pointWormMove.length - 1; i >= 0; i--) {
+                if (targetPos.equals(this.pointWormMove[i])) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return false;
+        }
+        
+    }
+
     //----------------------------------------------------------------------------------------------------------
     //di chuyen co dieu kien kiem tra
     WormMove(director: Vec3) {
+
         if (!this.CheckWall(director)) {
-            if (this.box) {
-                if (this.CheckWormTounchBox(director)) {
-                    if (this.CheckBoxCanMove(director) && this.currentBodyPoint < this.bodyLength) {
-                        this.box.getComponent(BoxController).BoxMoveByStep(director);
-                        if (this.CheckMoveInGrond(director)) {
-                            if (this.isTouchGround) {
-                                //console.log('touch in ground');
-                                this.WormMoveControl_TounchGround(director);
-                            }
-                            else {
-                                this.WormMoveControl_OnGround(director);
-                            }
-                        }
-                        else {
-                            this.WormMoveControl_Go(director);
-                            this.WormMoveControl_Back(director);
-                        }
-                    }
+            if (this.CheckWormTounchBox(director)) {
+                const touchBox = this.CheckWormTounchBox(director);
+                if (touchBox) {
+
+                }
+                if (this.CheckBoxCanMove(touchBox, director)) {
+                    touchBox.getComponent(BoxController).BoxMoveByStep(director);
+
+                    this.HandleWormMove(director);
+
                     return;
+                }
+                else {
+                    return;
+
                 }
             }
 
-            //console.log('check tounch ground' + this.CheckMoveInGrond(director));
-            if (this.CheckMoveInGrond(director)) {
-                if (this.isTouchGround) {
-                    console.log('touch in ground');
-                    this.WormMoveControl_TounchGround(director);
-                }
-                else {
-                    this.WormMoveControl_OnGround(director);
-                }
+            this.HandleWormMove(director);
+        }       
+    }
+
+    HandleWormMove(director: Vec3) {
+        if (this.CheckMoveInGrond(director)) {
+            if (this.pointWormMove.length == 1) {
+                this.WormMoveControl_OnGround(director);
             }
             else {
+                if (this.CheckCan_Back(director)) {
+                    this.WormMoveControl_Back(director);
+                }
+                if (this.CheckCan_Go(director)) {
+                    //go va set vi tri body
+                    this.WormMoveControl_Go(director).then(() => {
+                        this.BodyMoveControl_TounchGround(0, this.pointWormMove.length - 1);
+                    });
+                }
+            }
+        }
+        else {
+            if (this.CheckCan_Go(director)) {
                 this.WormMoveControl_Go(director);
+            }
+
+            if (this.CheckCan_Back(director)) {
                 this.WormMoveControl_Back(director);
             }
-            
         }
     }
 
     //kiem soat worm di chuyen
-    WormMoveControl_Go(director: Vec3) {
-        const _length = this.pointWormMove.length;
-        const nodePos = this.node.position.clone();
-        //console.log(nodePos + ' before move');
-        if (this.currentBodyPoint < this.bodyLength) {
-            const nextPos = this.node.position.clone();
-            if (_length >= 2 && nextPos.add(director).equals(this.pointWormMove[_length - 2])) {
-                this.canMoveBack = true;
-                return;
-            }
-            if (_length >= 2) {
-                //console.log(nodePos + 'old_node');
-                //console.log(this.pointWormMove[_length - 2] + ' length-2');
-                this.pointWormMove.splice(_length - 1, 0, nodePos);
-            } else {
-                //console.log(nodePos + 'node');
-                //console.log(this.pointWormMove[_length - 2] + ' length-2');
-                this.pointWormMove.unshift(nodePos);
-            }
-            this.WormMoveByStep(director);
-            //console.log("after move: " + this.node.position);
-            this.currentBodyPoint++;
+    //go: tien len
+    async WormMoveControl_Go(director: Vec3) {
+        const prefabs = this.bodyNode.children;
 
-            //dieu khien body worm
-            this.BodyMoveControl_Go_Back();
-
-            console.log('go');
-            this.canMoveBack = false;
+        //them vi tri moi
+        if (this.pointWormMove.length == 1) {
+            this.pointWormMove.unshift(this.node.position.clone());
+            //console.log('them pos lan 1 ' + this.pointWormMove);
         }
         else {
-            this.canMoveBack = true;
+            this.pointWormMove.splice(this.pointWormMove.length-1, 0, this.node.position.clone());
+            //console.log('them pos lan n ' + this.pointWormMove);
         }
+
+        await this.WormMoveByStep(director).then(() => {
+            //console.log('sau khi move ' + this.pointWormMove);
+
+            this.BodyMoveControl_Go_Back();
+            this.currentBodyPoint++;
+        });
+
+        console.log(this.pointWormMove[0]);
+        console.log('worm go-----');
+        
     }
 
-    WormMoveControl_Back(director: Vec3) {
-        if (this.canMoveBack) {
-            const _length = this.pointWormMove.length;
-            const nodePos = this.node.position.clone();
-            if (nodePos.add(director).equals(this.pointWormMove[_length - 2])) {
-                //console.log(this.pointWormMove[0]);
-                this.pointWormMove.splice(_length - 2, 1);
-                this.WormMoveByStep(director);
+    //back: lui ve
+    async WormMoveControl_Back(director: Vec3) {
+        const prefabs = this.bodyNode.children;
+        const _length = this.pointWormMove.length;
 
-                //dieu khien body worm
-                this.BodyMoveControl_Go_Back();
-
-                if (this.currentBodyPoint > 0) {
-                    this.currentBodyPoint--;
+        if (this.pointWormMove[_length - 2]) {
+            //xoa vi tri 
+            //console.log('vi tri xoa ' + this.pointWormMove[_length - 2]);
+            this.pointWormMove.splice(_length - 2, 1);
+            //for (let i = 0; i < this.bodyLength; i++) {
+            //    if (this.pointWormMove[i]) {
+            //        prefabs[i].position = this.pointWormMove[i].clone();
+            //    }
+            //}
+            await this.WormMoveByStep(director).then(() => {
+                for (let i = 0; i < this.bodyLength; i++) {
+                    this.BodyMoveControl_Go_Back();
                 }
-                console.log('back');
-            }
-        }
-        this.canMoveBack = false;
+                this.currentBodyPoint--;
+
+            });
+        }      
+        console.log('worm back-----');
     }
 
     WormMoveControl_OnGround(director: Vec3) {
-        this.WormMoveByStep(director);
-        this.BodyMoveControl_OnGround();
+        this.bodyNode.active = false;
+        this.WormMoveByStep(director).then(() => {
+            this.BodyMoveControl_OnGround();
+            this.bodyNode.active = true;
+        });
+        //console.log('after: ' + this.node.position);
         console.log('move on ground');
     }
 
     WormMoveControl_TounchGround(director: Vec3) {
-        console.log(this.currentBodyPoint);
-        console.log(this.bodyLength);
-        console.log(this.CheckDirectorMoved()+ '/' + director);
+        //console.log(this.currentBodyPoint);
+        //console.log(this.bodyLength);
+        //console.log(this.CheckDirectorMoved()+ '/' + director);
 
         if (this.currentBodyPoint < this.bodyLength) {
             //console.log('touch ground');
 
             if (director.equals(this.CheckDirectorMoved())) {
-                //if (director.equals(this._down) && this.pointWormMove.length == 2) {
-                    
-                //}
-                //else {
-                //    console.log('go_touch');
-                //    this.moveIndex = 0;
-                //    this.WormMoveControl_Go(director);
-                //    const arrayLength = this.pointWormMove.length;
-                //    this.BodyMoveControl_TounchGround(0, arrayLength - 1);
-                //}
                 console.log('back_touch');
-                this.canMoveBack = true;
+                //this.canMoveBack = true;
                 this.WormMoveControl_Back(director);
             }
             else {
+                console.log('go_touch');
                 this.moveIndex = 0;
-                this.WormMoveControl_Go(director);
-                const arrayLength = this.pointWormMove.length;
-                this.BodyMoveControl_TounchGround(0, arrayLength - 1);
+                this.WormMoveControl_Go(director).then(() => {
+                    const arrayLength = this.pointWormMove.length;
+                    this.BodyMoveControl_TounchGround(0, arrayLength - 1);
+                });
+                
             }
         }
         //console.log('move touch ground');
@@ -422,6 +469,7 @@ export class wormController extends Component {
     }
 
     BodyMoveControl_OnGround() {
+        //console.log(' move ' + this.node.position);
         for (let i = 0; i < this.bodyLength; i++) {
             this.bodyNode.children[i].position = this.node.position.clone();
         }
@@ -456,15 +504,37 @@ export class wormController extends Component {
             this.ResetPontOfBodyWorm();
         }
         console.log('body move');
+        //const targetNode = this.bodyNode.children[startIndex];
+        //let endPos;
+        //if (this.pointWormMove[startIndex + 1].equals(this.node.position)) {
+        //    endPos = this.node.position.clone();
+        //}
+        //else {
+        //     endPos = this.pointWormMove[startIndex + 1];
+        //}
+
+        //this.CreateTweenBodyWorm(targetNode, endPos, () => {
+        //})
     }
 
-    //hieu ung than sau di chuyen
+    //hieu ung body worm di chuyen
     CreateTweenBodyWorm(_partBody: Node, _targetPos: Vec3, OnComplete) {
         //console.log('tween');
         tween(_partBody)
             .to(this.bodyMoveDuration, { position: _targetPos }, { easing: 'sineInOut' })
             .call(OnComplete)
             .start();
+    }
+
+    //hieu dung worm di chuyen
+    CreateTweenWorm(worm: Node, _targetPos: Vec3): Promise<void> {
+        return new Promise((resolve) => {
+            tween(worm)
+                .to(this.bodyMoveDuration, { position: _targetPos }, { easing: 'sineInOut' })
+                .call(resolve)
+                .start();
+        })
+        
     }
 
     //lam moi vi tri than sau khi tounch ground

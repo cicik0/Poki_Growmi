@@ -38,7 +38,7 @@ export class BoxController extends Component {
     onLoad() {
     }
 
-    OnInit() {
+    protected OnInit() {
         //console.log('box onInit');
 
         if (GameManager._instance) {
@@ -59,7 +59,10 @@ export class BoxController extends Component {
     //box di chuyen step by step
     BoxMoveByStep(director: Vec3) {
         const nodePos = this.node.position.clone();
-        this.node.setPosition(nodePos.add(director));
+        //this.node.setPosition(nodePos.add(director));
+        tween(this.node)
+            .to(this.wormControl.bodyMoveDuration, { position: nodePos.add(director) }, { easing: 'sineInOut' })
+            .start();
     }
 
     //kiem tra box co the roi hay khong
@@ -79,7 +82,7 @@ export class BoxController extends Component {
 
             for (let child of mapPrefabs) {
                 if (child.position.equals(targetPos)) {
-                    if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BOX) {
+                    if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BOX || child.name===Constant.MAP_SCAFFOLD) {
                         //console.log('collider');
                         return true;
                     }
@@ -91,10 +94,8 @@ export class BoxController extends Component {
 
     //kiem tra box co nam tren worm hay khong
     CheckBoxOnWorm(): boolean {
-        const nodePos0 = this.node.position.clone();
+        //const nodePos0 = this.node.position.clone();
         const nodePos = this.node.position.clone().add(this.wormControl._down).toString();
-        //console.log('under box ' + nodePos);
-        //console.log('on worm' + this.wormController.pointWormMoveSet.has(nodePos));
         return this.wormControl.pointWormMoveSet.has(nodePos);
     }
 

@@ -76,17 +76,22 @@ export class wormController extends Component {
     //cap nhat set luu vi tri worm
     UpdateWormMoveSet() {
         this.pointWormMoveSet.clear();
+        console.log('point ' + this.pointWormMove);
         for (const point of this.pointWormMove) {
             this.pointWormMoveSet.add(point.toString());
         }
+        console.log('set ' + Array.from(this.pointWormMoveSet).join(", "));
+
     }
 
     //di chuyen sau khi nhan phim
     async WormMoveByStep(director: Vec3) {
         const nodePos = this.node.position.clone();
         //this.node.setPosition(nodePos.add(director));
-        await this.CreateTweenWorm(this.node, nodePos.add(director));
-        this.UpdateWormMoveSet();
+        await this.CreateTweenWorm(this.node, nodePos.add(director)).then(() => {
+            this.UpdateWormMoveSet();
+        });
+
         //if (this.CheckWinGame()) {
         //    this.node.emit('winGame');
         //}
@@ -118,7 +123,7 @@ export class wormController extends Component {
         }
 
         // Lấy node hộp từ map
-        this.boxes = map.children.filter(child => child.name === Constant.MAP_BOX);
+        this.boxes = map.children.filter(child => child.name === Constant.MAP_BOX || child.name === Constant.MAP_KEY);
         if (this.boxes.length === 0) {
             console.error('Box not found in map');
         } else {
@@ -166,7 +171,7 @@ export class wormController extends Component {
 
         for (let child of prefabs) {
             if (child.position.equals(targetPos)) {
-                if (child.name == Constant.MAP_MAP || Constant.MAP_FINISH) {
+                if (child.name === Constant.MAP_MAP || child.name === Constant.MAP_BOX) {
                     return false;
                 }
             }
@@ -185,7 +190,7 @@ export class wormController extends Component {
 
         for (let child of mapPrefabs) {
             if (child.position.equals(targetPos)) {
-                if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK || child.name == Constant.MAP_BOX || Constant.MAP_FINISH || Constant.MAP_WIN) {
+                if (child.name == Constant.MAP_MAP || child.name == Constant.MAP_BLOCK || child.name === Constant.MAP_BOX || child.name === Constant.MAP_FINISH || child.name === Constant.MAP_KEY || child.name === Constant.MAP_SCAFFOLD) {
                     //console.log('check finish map');
                     if (this.pointWormMove.length == 1) {
                         this.isTouchGround = false;
@@ -296,13 +301,12 @@ export class wormController extends Component {
 
     //kiem tra co the back
     CheckCan_Back(director: Vec3): boolean {
-        if (this.currentBodyPoint > 0) {
-            const nodePos = this.node.position.clone();
-            const targetPos = nodePos.add(director);
-            for (let i = this.pointWormMove.length - 1; i >= 0; i--) {
-                if (targetPos.equals(this.pointWormMove[i])) {
-                    return true;
-                }
+        const _length = this.pointWormMove.length;
+        const nodePos = this.node.position.clone();
+        const targetPos = nodePos.add(director);
+        if (this.pointWormMove[_length - 2]) {
+            if (targetPos.equals(this.pointWormMove[_length - 2])) {
+                return true;
             }
             return false;
         }
@@ -316,27 +320,28 @@ export class wormController extends Component {
     //di chuyen co dieu kien kiem tra
     WormMove(director: Vec3) {
 
-        if (!this.CheckWall(director)) {
+        if (!this.CheckWall(director) && this.pointWormMove.length-1 <= this.bodyLength) {
             if (this.CheckWormTounchBox(director)) {
                 const touchBox = this.CheckWormTounchBox(director);
-                if (touchBox) {
+                if (touchBox && this.pointWormMove.length <= this.bodyLength) {
+                    if (this.CheckBoxCanMove(touchBox, director)) {
+                        touchBox.getComponent(BoxController).BoxMoveByStep(director);
 
+                        this.HandleWormMove(director);
+                        //this.UpdateWormMoveSet();
+                        return;
+                    }
+                    else {
+                        return;
+
+                    }
                 }
-                if (this.CheckBoxCanMove(touchBox, director)) {
-                    touchBox.getComponent(BoxController).BoxMoveByStep(director);
-
-                    this.HandleWormMove(director);
-
-                    return;
-                }
-                else {
-                    return;
-
-                }
+                
             }
 
             this.HandleWormMove(director);
-        }       
+        } 
+        //console.log('SET ' + this.pointWormMoveSet);
     }
 
     HandleWormMove(director: Vec3) {
@@ -347,13 +352,14 @@ export class wormController extends Component {
             else {
                 if (this.CheckCan_Back(director)) {
                     this.WormMoveControl_Back(director);
-                }
-                if (this.CheckCan_Go(director)) {
-                    //go va set vi tri body
-                    this.WormMoveControl_Go(director).then(() => {
-                        this.BodyMoveControl_TounchGround(0, this.pointWormMove.length - 1);
-                    });
-                }
+                } else {
+                    if (this.CheckCan_Go(director)) {
+                        //go va set vi tri body
+                        this.WormMoveControl_Go(director).then(() => {
+                            this.BodyMoveControl_TounchGround(0, this.pointWormMove.length - 1);
+                        });
+                    }
+                }               
             }
         }
         else {
@@ -389,14 +395,13 @@ export class wormController extends Component {
             this.currentBodyPoint++;
         });
 
-        console.log(this.pointWormMove[0]);
+        //console.log(this.pointWormMove[0]);
         console.log('worm go-----');
         
     }
 
     //back: lui ve
     async WormMoveControl_Back(director: Vec3) {
-        const prefabs = this.bodyNode.children;
         const _length = this.pointWormMove.length;
 
         if (this.pointWormMove[_length - 2]) {

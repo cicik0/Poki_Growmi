@@ -95,11 +95,13 @@ export class GameManager extends Component {
                 break;
             case KeyCode.KEY_F:
                 console.log(this.worm.pointWormMove); //test funcion, REMEMBER DELETE
-                console.log(this.worm.pointWormMove.length);
+                //console.log(this.worm.pointWormMove.length);
                 //this.worm.CheckDirectorMoved();
                 //console.log('return ' + this.worm.CheckDirectorMoved());
                 //console.log('current map ' + this.currentMap);
-                console.log('current body length ' + this.worm.currentBodyPoint);   
+                //console.log('current body length ' + this.worm.currentBodyPoint);
+                //console.log('SET ' +this.worm.pointWormMoveSet);
+                //console.log('set ' + Array.from(this.worm.pointWormMoveSet).join(", "));
                 break;
         }
     }

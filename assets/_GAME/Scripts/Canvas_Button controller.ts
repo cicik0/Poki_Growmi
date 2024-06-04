@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, director, Node } from 'cc';
+import { _decorator, Button, Component, director, Label, Node } from 'cc';
 import { GameManager } from './GameManager';
 const { ccclass, property } = _decorator;
 
@@ -24,6 +24,16 @@ export class Canvas_Button_controller extends Component {
     })
     public button_right: Button;
 
+    @property({
+        type: Button
+    })
+    public button_reset: Button;
+
+    @property({
+        type: Label
+    })
+    public lebelBodyPoint: Label;
+
     start() {
 
     }
@@ -38,6 +48,7 @@ export class Canvas_Button_controller extends Component {
         this.AddClickEvent(this.button_down, this.OnClickButton_Down);
         this.AddClickEvent(this.button_left, this.OnClickButton_Left);
         this.AddClickEvent(this.button_right, this.OnClickButton_Right);
+        this.AddClickEvent(this.button_reset, this.OnClickButton_Reset);
     }
 
     //them event click cho button
@@ -60,6 +71,11 @@ export class Canvas_Button_controller extends Component {
 
     OnClickButton_Right() {
         GameManager._instance.HandelButton_RightClick();
+    }
+
+    //reset map
+    OnClickButton_Reset() {
+        GameManager._instance.HandeButton_ResetMap();
     }
 }
 

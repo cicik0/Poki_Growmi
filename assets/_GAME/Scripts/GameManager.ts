@@ -57,6 +57,7 @@ export class GameManager extends Component {
     OnInit() {
         //lang nghe su kien chuyen map va win
         this.node.on('finishmap', this.HandelFinishMap, this);
+
         //this.node.on('winGame', this.HandelWinGame, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         //input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
@@ -101,7 +102,7 @@ export class GameManager extends Component {
                 //console.log('current map ' + this.currentMap);
                 //console.log('current body length ' + this.worm.currentBodyPoint);
                 //console.log('SET ' +this.worm.pointWormMoveSet);
-                //console.log('set ' + Array.from(this.worm.pointWormMoveSet).join(", "));
+                console.log('set ' + Array.from(this.worm.pointWormMoveSet).join(", "));
                 break;
         }
     }
@@ -167,6 +168,10 @@ export class GameManager extends Component {
 
     HandelButton_RightClick() {
         this.worm.WormMove(this.worm._right);
+    }
+
+    HandeButton_ResetMap() {
+        this.LoadScene(this.maps[this.currentMap]);
     }
 
     //huy su kien

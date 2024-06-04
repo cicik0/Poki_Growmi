@@ -1,6 +1,7 @@
 ﻿import { _decorator, CCFloat, CCInteger, Component, debug, director, easing, instantiate, Node, Prefab, tween, Vec3 } from 'cc';
 import { Constant } from './Constant';
 import { BoxController } from './BoxController';
+import { NormalBoxController } from './NormalBoxController';
 const { ccclass, property } = _decorator;
 
 
@@ -76,21 +77,34 @@ export class wormController extends Component {
     //cap nhat set luu vi tri worm
     UpdateWormMoveSet() {
         this.pointWormMoveSet.clear();
-        console.log('point ' + this.pointWormMove);
+        //console.log('point ' + this.pointWormMove);
         for (const point of this.pointWormMove) {
             this.pointWormMoveSet.add(point.toString());
         }
-        console.log('set ' + Array.from(this.pointWormMoveSet).join(", "));
+        //console.log('set ' + Array.from(this.pointWormMoveSet).join(", "));
 
     }
 
     //di chuyen sau khi nhan phim
     async WormMoveByStep(director: Vec3) {
-        const nodePos = this.node.position.clone();
-        //this.node.setPosition(nodePos.add(director));
-        await this.CreateTweenWorm(this.node, nodePos.add(director)).then(() => {
+        if (director.equals(this._up)) {
+            const duration_up = 0.01;
+            const nodePos = this.node.position.clone();
+            //this.node.setPosition(nodePos.add(director));
+            //await this.CreateTweenWorm(this.node, nodePos.add(director), duration_up).then(() => {
+            //    this.UpdateWormMoveSet();
+            //});
+            this.node.setPosition(nodePos.add(director));
             this.UpdateWormMoveSet();
-        });
+        }
+        else {
+            const nodePos = this.node.position.clone();
+            //this.node.setPosition(nodePos.add(director));
+            await this.CreateTweenWorm(this.node, nodePos.add(director), this.bodyMoveDuration).then(() => {
+                this.UpdateWormMoveSet();
+            });
+        }
+        
 
         //if (this.CheckWinGame()) {
         //    this.node.emit('winGame');
@@ -141,7 +155,7 @@ export class wormController extends Component {
 
             for (let child of mapPrefabs) {
                 if (child.position.equals(targetPos)) {
-                    if (child.name === Constant.MAP_MAP || child.name === Constant.MAP_BLOCK) {
+                    if (child.name === Constant.MAP_MAP || (child.name === Constant.MAP_DOOR && child.active === true)) {
                         //console.log('collider');
                         return true;
                     }
@@ -325,9 +339,14 @@ export class wormController extends Component {
                 const touchBox = this.CheckWormTounchBox(director);
                 if (touchBox && this.pointWormMove.length <= this.bodyLength) {
                     if (this.CheckBoxCanMove(touchBox, director)) {
-                        touchBox.getComponent(BoxController).BoxMoveByStep(director);
 
-                        this.HandleWormMove(director);
+                        this.HandleWormMove(director).then(() => {
+                            touchBox.getComponent(BoxController).BoxMoveByStep(director);
+                            //touchBox.getComponent(BoxController).isMoveing = true;
+                            //this.node.emit('checkFalling');
+                        })
+                        //touchBox.getComponent(BoxController).BoxMoveByStep(director);
+                        //this.HandleWormMove(director);
                         //this.UpdateWormMoveSet();
                         return;
                     }
@@ -336,15 +355,15 @@ export class wormController extends Component {
 
                     }
                 }
-                
-            }
+
+            }            
 
             this.HandleWormMove(director);
         } 
         //console.log('SET ' + this.pointWormMoveSet);
     }
 
-    HandleWormMove(director: Vec3) {
+    async HandleWormMove(director: Vec3) {
         if (this.CheckMoveInGrond(director)) {
             if (this.pointWormMove.length == 1) {
                 this.WormMoveControl_OnGround(director);
@@ -526,16 +545,16 @@ export class wormController extends Component {
     CreateTweenBodyWorm(_partBody: Node, _targetPos: Vec3, OnComplete) {
         //console.log('tween');
         tween(_partBody)
-            .to(this.bodyMoveDuration, { position: _targetPos }, { easing: 'sineInOut' })
+            .to(0.02, { position: _targetPos }, { easing: 'fade' })
             .call(OnComplete)
             .start();
     }
 
     //hieu dung worm di chuyen
-    CreateTweenWorm(worm: Node, _targetPos: Vec3): Promise<void> {
+    CreateTweenWorm(worm: Node, _targetPos: Vec3, duration: number): Promise<void> {
         return new Promise((resolve) => {
             tween(worm)
-                .to(this.bodyMoveDuration, { position: _targetPos }, { easing: 'sineInOut' })
+                .to(duration, { position: _targetPos }, { easing: 'sineInOut' })
                 .call(resolve)
                 .start();
         })

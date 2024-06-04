@@ -7,15 +7,12 @@ const { ccclass, property } = _decorator;
 @ccclass('BoxController')
 export class BoxController extends Component {
 
-    @property({
-        type: CCFloat
-    })
-    public ratioDuration: number;
-
     wormControl: wormController;
 
+    durationFall: number = 0.01;
     canFalling: boolean;
     isFalling: boolean = false;
+    isMoveing: boolean = false;
 
     start() {
         this.OnInit();
@@ -28,14 +25,25 @@ export class BoxController extends Component {
         //console.log(this.CheckBoxCanFall());
         //console.log('wall ' + this.CheckBoxOnWall());
         //console.log('worm ' + this.CheckBoxOnWorm());
-        if (!this.isFalling ) {
-            if (this.CheckBoxCanFall()) {
-                this.BoxFalling();
-            }           
+        //console.log(this.isFalling);
+        //if (!this.isFalling) {
+        //
+        //    //console.log('worm ' + this.CheckBoxOnWorm());
+        //    if (this.CheckBoxCanFall()) {
+        //        this.BoxFalling();
+        //        if (!this.CheckBoxCanFall()) {
+        //            this.isMoveing = false;
+        //        }
+        //    }
+        //}
+        //this.BoxFalling();
+        if (!this.isFalling && this.CheckBoxCanFall()) {
+            this.BoxFalling();
         }
     }
 
     onLoad() {
+        //this.node.on('checkFaliing', this.HandleCheckFalling, this);
     }
 
     protected OnInit() {
@@ -54,15 +62,21 @@ export class BoxController extends Component {
         else {
             console.log('can found gameManager');
         }
+        
     }
+
 
     //box di chuyen step by step
     BoxMoveByStep(director: Vec3) {
+        //this.CreateBoxMove(director).then(() => {
+        //    console.log('box pos ' + this.node.position);
+        //    this.BoxFalling();
+        //});
         const nodePos = this.node.position.clone();
-        //this.node.setPosition(nodePos.add(director));
-        tween(this.node)
-            .to(this.wormControl.bodyMoveDuration, { position: nodePos.add(director) }, { easing: 'sineInOut' })
-            .start();
+        this.node.setPosition(nodePos.add(director));
+        this.BoxFalling();
+        //console.log('box pos ' + this.node.position);
+
     }
 
     //kiem tra box co the roi hay khong
@@ -94,31 +108,62 @@ export class BoxController extends Component {
 
     //kiem tra box co nam tren worm hay khong
     CheckBoxOnWorm(): boolean {
-        //const nodePos0 = this.node.position.clone();
+        this.wormControl.UpdateWormMoveSet();
         const nodePos = this.node.position.clone().add(this.wormControl._down).toString();
+        //console.log('Checking box at position:', nodePos);
+        console.log('Worm positions set:', Array.from(this.wormControl.pointWormMoveSet).join(", "));
         return this.wormControl.pointWormMoveSet.has(nodePos);
     }
 
     //box roi
     BoxFalling() {
-        this.isFalling = true;
+        //console.log('box falling');
+        //this.isFalling = true;
         //console.log('--------------------------------------------------------------------------falling');
         //console.log('check worm ' + this.CheckBoxOnWorm());
-        this.CreateBoxTween(() => {
-            this.isFalling = false;
-            this.canFalling = this.CheckBoxCanFall();
-        });
+        //this.CreateBoxTween(() => {
+            //this.BoxFalling();
+            //this.isFalling = false;
+            //this.canFalling = this.CheckBoxCanFall();
+        //});  
+        console.log(this.CheckBoxCanFall());
+        console.log('wall ' + this.CheckBoxOnWall());
+        console.log('worm ' + this.CheckBoxOnWorm());
+        if (this.CheckBoxCanFall()) {
+            this.isFalling = true;
+            this.CreateBoxTween(() => {
+                if (this.CheckBoxCanFall()) {
+                    this.BoxFalling();
+                }
+                else {
+                    this.isFalling = false;
+                }                
+            });
+        }
     }
 
     //tao hieu ung box roi
     CreateBoxTween(OnComplete) {
         const nodePos = this.node.position.clone();
         tween(this.node)
-            .to(this.wormControl.bodyMoveDuration * this.ratioDuration, { position: nodePos.add(this.wormControl._down) }, { easing: 'sineInOut' })
+            .to(this.durationFall*10, { position: nodePos.add(this.wormControl._down) }, { easing: 'sineInOut' })
             .call(OnComplete)
             .start();
     }
 
+    //tao hieu ung box move
+    async CreateBoxMove(director: Vec3) {
+        const nodePos = this.node.position.clone();
+        //this.node.setPosition(nodePos.add(director));
+        tween(this.node)
+            .to(this.durationFall, { position: nodePos.add(director) }, { easing: 'sineInOut' })
+            .start();
+    }
+
+
+    onDestroy() {
+        //this.node.off('checkFalling');
+    }
 }
 
 

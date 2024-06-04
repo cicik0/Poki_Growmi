@@ -9,6 +9,7 @@ export class Constant extends Component {
     static readonly MAP_SCAFFOLD: string = 'SCAFFOLD';
     static readonly MAP_LOCK: string = 'RED_LOCK';
     static readonly MAP_KEY: string = 'RED_KEY';
+    static readonly MAP_DOOR: string = 'DOOR';
     static readonly MAP_FINISH: string = 'finishMap';
 
     static readonly MAP_1: string = 'map1';

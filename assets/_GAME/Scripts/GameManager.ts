@@ -1,6 +1,8 @@
 import { _decorator, Component, Node, input, Input, KeyCode, EventKeyboard,game, director, Director, find, CCString } from 'cc';
 import { wormController } from './wormController';
 import { Constant } from './Constant';
+import { Canvas_Setting } from './Canvas_Setting';
+import { WormAudio } from './WormAudio';
 const { ccclass, property } = _decorator;
 
 enum GameState {
@@ -33,6 +35,11 @@ export class GameManager extends Component {
         type: Node
     })
     public canvasControll: Node | null;
+
+    @property({
+        type: Node
+    })
+    public canvasSetting: Node | null;
 
     onLoad() {
         if (GameManager._instance == null) {
@@ -170,8 +177,18 @@ export class GameManager extends Component {
         this.worm.WormMove(this.worm._right);
     }
 
-    HandeButton_ResetMap() {
+    HandelButton_ResetMap() {
         this.LoadScene(this.maps[this.currentMap]);
+    }
+
+    HandelButton_Setting() {
+        this.ActiveCanvas(this.canvasControll);
+        this.ActiveCanvas(this.canvasSetting);
+        this.canvasSetting.getComponent(Canvas_Setting).OpenUISetting();
+    }
+
+    ActiveCanvas(canvasNode: Node) {
+        canvasNode.active = !canvasNode.active;
     }
 
     //huy su kien

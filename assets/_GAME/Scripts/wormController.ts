@@ -1,7 +1,8 @@
-﻿import { _decorator, CCFloat, CCInteger, Component, debug, director, easing, instantiate, Node, Prefab, tween, Vec3 } from 'cc';
+﻿import { _decorator, CCFloat, CCInteger, Component, debug, director, easing, instantiate, Node, Prefab, tween, Vec3, find } from 'cc';
 import { Constant } from './Constant';
 import { BoxController } from './BoxController';
 import { NormalBoxController } from './NormalBoxController';
+import { WormAudio } from './WormAudio';
 const { ccclass, property } = _decorator;
 
 
@@ -34,6 +35,11 @@ export class wormController extends Component {
         type: CCFloat
     })
     public bodyMoveDuration: number;
+
+    @property({
+        type: WormAudio
+    })
+    public wormAudio: WormAudio | null;
 
     moveDistance: number = 100;
     pointWormMoveSet: Set<string> = new Set<string>();
@@ -87,6 +93,7 @@ export class wormController extends Component {
 
     //di chuyen sau khi nhan phim
     async WormMoveByStep(director: Vec3) {
+        this.wormAudio.onAudioQueue(0);
         if (director.equals(this._up)) {
             const duration_up = 0.01;
             const nodePos = this.node.position.clone();
@@ -94,6 +101,7 @@ export class wormController extends Component {
             //await this.CreateTweenWorm(this.node, nodePos.add(director), duration_up).then(() => {
             //    this.UpdateWormMoveSet();
             //});
+            //this.wormAudio.onAudioQueue(0);
             this.node.setPosition(nodePos.add(director));
             this.UpdateWormMoveSet();
         }
@@ -142,6 +150,14 @@ export class wormController extends Component {
             console.error('Box not found in map');
         } else {
             console.log(`Found ${this.boxes.length} boxes`);
+        }
+
+        const _audio = find('EffectAudioControll/WormAudio');
+        if (!_audio) {
+            console.error('cant find _audio');
+        }
+        else {
+            this.wormAudio = _audio.getComponent(WormAudio);
         }
     }
 
@@ -376,6 +392,7 @@ export class wormController extends Component {
                         //go va set vi tri body
                         this.WormMoveControl_Go(director).then(() => {
                             this.BodyMoveControl_TounchGround(0, this.pointWormMove.length - 1);
+                            this.wormAudio.onAudioQueue(1);
                         });
                     }
                 }               
@@ -554,7 +571,7 @@ export class wormController extends Component {
     CreateTweenWorm(worm: Node, _targetPos: Vec3, duration: number): Promise<void> {
         return new Promise((resolve) => {
             tween(worm)
-                .to(duration, { position: _targetPos }, { easing: 'sineInOut' })
+                .to(duration, { position: _targetPos }, { easing: 'quadInOut' })
                 .call(resolve)
                 .start();
         })

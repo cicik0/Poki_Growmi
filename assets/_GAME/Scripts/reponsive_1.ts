@@ -48,10 +48,11 @@ export class reponsive_1 extends Component {
         const rightNodeTranfrom = this.rightNode.getComponent(UITransform);
 
         const halfWidth = parentWidth / 2;
-        const margin = 560  ;
+        const margin_right = 560  ;
+        const margin_left = 460  ;
 
-        leftNodeTranform.contentSize = size(halfWidth - margin, parentHeight);
-        rightNodeTranfrom.contentSize = size(halfWidth - margin, parentHeight);
+        leftNodeTranform.contentSize = size(halfWidth - margin_left, parentHeight);
+        rightNodeTranfrom.contentSize = size(halfWidth - margin_right, parentHeight);
 
         //reset vi tri node con de full man hinh
         this.leftNode.setPosition(-halfWidth / 2, 0);

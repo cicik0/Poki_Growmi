@@ -156,7 +156,7 @@ export class BoxController extends Component {
         const nodePos = this.node.position.clone();
         //this.node.setPosition(nodePos.add(director));
         tween(this.node)
-            .to(this.durationFall, { position: nodePos.add(director) }, { easing: 'sineInOut' })
+            .to(this.durationFall*5, { position: nodePos.add(director) }, { easing: 'sineInOut' })
             .start();
     }
 

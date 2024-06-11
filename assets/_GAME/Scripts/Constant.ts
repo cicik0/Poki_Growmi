@@ -11,6 +11,7 @@ export class Constant extends Component {
     static readonly MAP_KEY: string = 'RED_KEY';
     static readonly MAP_DOOR: string = 'DOOR';
     static readonly MAP_FINISH: string = 'finishMap';
+    static readonly MAP_CHECK_WIN: string = 'START';
 
     static readonly MAP_1: string = 'map1';
     static readonly MAP_2: string = 'map2';

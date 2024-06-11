@@ -3,6 +3,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('WormAudio')
 export class WormAudio extends Component {
+    public static _instance: WormAudio;
+
     @property({
         type: [AudioClip]
     })
@@ -13,7 +15,14 @@ export class WormAudio extends Component {
     })
     public audiSource: AudioSource = null!;
 
-
+    protected onLoad(): void {
+        if(WormAudio._instance == null){
+            WormAudio._instance = this;
+        }
+        else{
+            this.destroy();
+        }
+    }
 
     onAudioQueue(index: number) {
         let clip: AudioClip = this.clips[index];
@@ -21,4 +30,5 @@ export class WormAudio extends Component {
         this.audiSource.playOneShot(clip);
     }
 }
-
+
+

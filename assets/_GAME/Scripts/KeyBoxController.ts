@@ -2,6 +2,8 @@ import { _decorator, Component, Node } from 'cc';
 import { BoxController } from './BoxController';
 import { Constant } from './Constant';
 import { DoorController } from './DoorController';
+import { GameManager } from './GameManager';
+import { WormAudio } from './WormAudio';
 const { ccclass, property } = _decorator;
 
 @ccclass('KeyBoxController')
@@ -12,6 +14,8 @@ export class KeyBoxController extends BoxController {
 
     lock: Node;
 
+    isLock:boolean = true;
+
     star() {
         super.start();
     }
@@ -19,10 +23,15 @@ export class KeyBoxController extends BoxController {
     update(deltaTime: number) {
         super.update(deltaTime);
         if (this.CheckLockPosition()) {
+            if(this.isLock){
+                WormAudio._instance.onAudioQueue(2);
+            }
             this.OpenDoor()
+            this.isLock = false;
         }
         else {
             this.CloseDoor();
+            this.isLock = true;
         }
     }
 

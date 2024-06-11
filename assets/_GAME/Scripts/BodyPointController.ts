@@ -11,6 +11,7 @@ export class BodyPointController extends Component {
     public bodyPointPrefab: Prefab;
 
     maxBodyPoint: number;
+    currentBoidyPoint : number;
 
     onLoad() {
         //console.log('hello');
@@ -24,28 +25,48 @@ export class BodyPointController extends Component {
     }
 
     update(deltaTime: number) {
+        //console.log('current body point ' + this.currentBoidyPoint);
+        this.currentBoidyPoint = GameManager._instance.worm.pointWormMove.length;
+        this.UpdateBodyPointUI();
     }
 
     OnSceneLoad() {
         this.maxBodyPoint = GameManager._instance.worm.bodyLength;
-        console.log(this.maxBodyPoint);
         this.CreateUIBodyPoint();
+        //console.log('body point ' + this.maxBodyPoint);
+        //console.log('current body point ' + this.currentBoidyPoint);
     }
 
     CreateUIBodyPoint() {
-        this.node.removeAllChildren();
+        this.node.removeAllChildren();        
         for (let i = 0; i < this.maxBodyPoint; i++) {
             let bodyPoint = instantiate(this.bodyPointPrefab);
-            this.node.addChild(bodyPoint);
+            this.node.addChild(bodyPoint);            
         }
         this.SetPositionUIBodyPoint();
     }
 
     SetPositionUIBodyPoint() {
+        const addDistance = new Vec3(50, 0, 0);
+        const prefabsPos = [];
         const prefabs = this.node.children;
-        for (let i = 1; i < prefabs.length; i++) {
-            prefabs[i].position = prefabs[i - 1].position.add(new Vec3(-50, 0, 0));
-            console.log( i, prefabs[i]);
+        console.log('check body ' + prefabs.length);
+        for (let i = 0; i < this.maxBodyPoint; i++) {
+            prefabsPos.push(addDistance.clone().multiplyScalar(i+1));
+            prefabs[i].position = prefabsPos[i];
+        }
+        console.log(prefabsPos);
+    }
+
+    UpdateBodyPointUI(){
+        const prefabs = this.node.children;
+        for(let i = 0; i<this.maxBodyPoint; i++){
+            if(i<this.currentBoidyPoint-1){
+                prefabs[i].active = false;
+            }
+            else{
+                prefabs[i].active = true;
+            }
         }
     }
 

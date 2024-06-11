@@ -1,4 +1,4 @@
-﻿import { _decorator, CCFloat, CCInteger, Component, debug, director, easing, instantiate, Node, Prefab, tween, Vec3, find } from 'cc';
+import { _decorator, CCFloat, CCInteger, Component, debug, director, easing, instantiate, Node, Prefab, tween, Vec3, find } from 'cc';
 import { Constant } from './Constant';
 import { BoxController } from './BoxController';
 import { NormalBoxController } from './NormalBoxController';
@@ -35,11 +35,6 @@ export class wormController extends Component {
         type: CCFloat
     })
     public bodyMoveDuration: number;
-
-    @property({
-        type: WormAudio
-    })
-    public wormAudio: WormAudio | null;
 
     moveDistance: number = 100;
     pointWormMoveSet: Set<string> = new Set<string>();
@@ -93,7 +88,7 @@ export class wormController extends Component {
 
     //di chuyen sau khi nhan phim
     async WormMoveByStep(director: Vec3) {
-        this.wormAudio.onAudioQueue(0);
+        WormAudio._instance.onAudioQueue(0);
         if (director.equals(this._up)) {
             const duration_up = 0.01;
             const nodePos = this.node.position.clone();
@@ -109,14 +104,14 @@ export class wormController extends Component {
             const nodePos = this.node.position.clone();
             //this.node.setPosition(nodePos.add(director));
             await this.CreateTweenWorm(this.node, nodePos.add(director), this.bodyMoveDuration).then(() => {
-                this.UpdateWormMoveSet();
+                this.UpdateWormMoveSet();  
+                if (this.CheckWinGame()) {
+                    this.node.emit('winGame');
+                    //console.log('win');
+                }              
             });
         }
         
-
-        //if (this.CheckWinGame()) {
-        //    this.node.emit('winGame');
-        //}
     }
 
     //khoi tao than sau ban dau
@@ -152,13 +147,7 @@ export class wormController extends Component {
             console.log(`Found ${this.boxes.length} boxes`);
         }
 
-        const _audio = find('EffectAudioControll/WormAudio');
-        if (!_audio) {
-            console.error('cant find _audio');
-        }
-        else {
-            this.wormAudio = _audio.getComponent(WormAudio);
-        }
+
     }
 
     //----------------------------------------------------------------------------------------------------------
@@ -171,7 +160,7 @@ export class wormController extends Component {
 
             for (let child of mapPrefabs) {
                 if (child.position.equals(targetPos)) {
-                    if (child.name === Constant.MAP_MAP || (child.name === Constant.MAP_DOOR && child.active === true)) {
+                    if (child.name === Constant.MAP_MAP || (child.name === Constant.MAP_DOOR && child.active === true || child.name===Constant.MAP_FINISH)) {
                         //console.log('collider');
                         return true;
                     }
@@ -229,7 +218,7 @@ export class wormController extends Component {
                         this.isTouchGround = true;
                     }
 
-                    if (child.name == Constant.MAP_FINISH) {
+                    if (child.name == Constant.MAP_FINISH && this.currentBodyPoint<this.bodyLength) {
                         //console.log('finish map');
 
                         if (this.node.hasEventListener('finishmap')) {
@@ -303,7 +292,7 @@ export class wormController extends Component {
             const mapPrefabs = this.map.children;
 
             for (let child of mapPrefabs) {
-                if (child.name == Constant.MAP_WIN && child.position.equals(this.node.position)) {
+                if (child.name == Constant.MAP_CHECK_WIN && child.position.equals(this.node.position)) {
                     return true;
                 }
             }
@@ -392,7 +381,7 @@ export class wormController extends Component {
                         //go va set vi tri body
                         this.WormMoveControl_Go(director).then(() => {
                             this.BodyMoveControl_TounchGround(0, this.pointWormMove.length - 1);
-                            this.wormAudio.onAudioQueue(1);
+                            WormAudio._instance.onAudioQueue(1);
                         });
                     }
                 }               

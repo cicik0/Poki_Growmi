@@ -65,7 +65,7 @@ export class GameManager extends Component {
         //lang nghe su kien chuyen map va win
         this.node.on('finishmap', this.HandelFinishMap, this);
 
-        //this.node.on('winGame', this.HandelWinGame, this);
+        this.node.on('winGame', this.HandelWinGame, this);
         input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         //input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
     }
@@ -153,7 +153,7 @@ export class GameManager extends Component {
             if (wormControl) {
                 this.worm = wormControl;
                 wormNode.on('finishmap', this.HandelFinishMap, this);
-                //wormNode.on('winGame', this.HandelWinGame, this);
+                wormNode.on('winGame', this.HandelWinGame, this);
             }
             else {
                 console.error('can find wormcontroller');
@@ -194,7 +194,7 @@ export class GameManager extends Component {
     //huy su kien
     onDestroy() {
         this.node.off('finishmap', this.HandelFinishMap, this);
-        //this.node.off('winGame', this.HandelWinGame, this);
+        this.node.off('winGame', this.HandelWinGame, this);
         director.off(Director.EVENT_AFTER_SCENE_LAUNCH, this.OnSceneLoad, this);
     }
 }

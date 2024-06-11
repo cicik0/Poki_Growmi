@@ -34,7 +34,7 @@ export class Popup_UISetting extends Component {
             .to(this.durationTween / 5, { scale: new Vec3(0.8, 0.8, 0.8) }, { easing: 'sineOut' })
             .to(this.durationTween / 3, { scale: new Vec3(1.1, 1.1, 1.1) }, { easing: 'sineIn' })
             .to(this.durationTween / 5, { scale: new Vec3(0.95, 0.95, 0.95) }, { easing: 'sineOut' })
-            .to(this.durationTween / 5, { scale: new Vec3(1, 1, 1) }, { easing: 'sineIn' })
+            //.to(this.durationTween / 5, { scale: new Vec3(1, 1, 1) }, { easing: 'sineIn' })
             .start();
 
         tween(this.fullScreen_opcity)
